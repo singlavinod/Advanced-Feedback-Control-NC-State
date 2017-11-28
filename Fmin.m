@@ -26,8 +26,8 @@
 
 function F = Fmin(A, B1, B2, Q, R, U, rho, n, tol)
 
-% Initial feedback gain, F0
-F0 = lqr(A,B2,Q,R);
+% Initial feedback gain, F
+F = lqr(A,B2,Q,R);
 
 % Solve eqn. (NC-L)
 L = lyap(A - B2*F, B1*B1');
@@ -48,7 +48,7 @@ for i = 1:n
     step = 1;
     
     % Solve sylvester eqn. (NC-F) for F_bar
-    F_bar = lyap(rho*inv(R), 2*L, -inv(R)*(2*B2'*P*L + rho*U));
+    F_bar = lyap(R\rho, 2*L, -inv(R)*(2*B2'*P*L + rho*U));
     
     % Descent direction of phi(F), F_tilda
     F_tilda = F_bar - F;
@@ -112,5 +112,5 @@ end
 if (i == n)
     disp('Max iterations reached for Anderson-Moore method');
     disp('Gradient norm = '); sprintf('%.4f',norm(del_phi, 'fro'));
-    
+end
 end
