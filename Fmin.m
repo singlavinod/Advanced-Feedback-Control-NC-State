@@ -48,7 +48,7 @@ for i = 1:n
     step = 1;
     
     % Solve sylvester eqn. (NC-F) for F_bar
-    F_bar = lyap(R\rho, 2*L, -inv(R)*(2*B2'*P*L + rho*U));
+    F_bar = lyap(inv(R).*rho, 2*L, -inv(R)*(2*B2'*P*L + rho*U));
     
     % Descent direction of phi(F), F_tilda
     F_tilda = F_bar - F;
@@ -66,7 +66,7 @@ for i = 1:n
         error('F_tilda is not a descent direction');
     end
     
-    while True
+    while true
         
         F_update = F + step*F_tilda;
         
@@ -88,7 +88,7 @@ for i = 1:n
         % Use line search method (Armijo rule), for determining step size
         % while maintaining closed loop stability and convergence to a
         % stationary point of objective function, phi
-        if ((phi - phi_update) > step*alpha*trace( - F_tilda*del_phi))...
+        if ((phi - phi_update) > step*alpha*trace( - F_tilda'*del_phi))...
                 && ~isnan(phi_update)
             break;
         end

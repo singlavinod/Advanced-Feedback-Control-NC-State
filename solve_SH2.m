@@ -90,7 +90,7 @@ for i = 1:n
         % Use line search method (Armijo rule), for determining step size
         % while maintaining closed loop stability and convergence to a
         % stationary point of objective function, phi
-        if ((J - J_update) > step*alpha*trace( - F_cj*del_J))...
+        if ((J - J_update) > step*alpha*trace( - F_cj'*del_J))...
                 && ~isnan(J_update)
             break;
         end
