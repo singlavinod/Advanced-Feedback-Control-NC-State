@@ -39,15 +39,15 @@
 %       Automatic Control, vol. 58, no. 9, 2013, pp. 2426?2431.,
 %       doi:10.1109/tac.2013.2257618
 
-function [F, J, N, W_new] = sparselqr(A, B1, B2, Q, R, rho, n, Gamma, W)
+function [F, J, N] = sparselqr(A, B1, B2, Q, R, rho, n, Gamma)
 
-% Extract input matrix dimensions and preallocate F, J, N
+% Extract input matrix dimensions
 [i, j] = size(B2);
-F = zeros(j, i);
 
 % Set the initial value of G to be LQR centralized gain, also equal to
 % initial value of F
-G = lqr(A, B2, Q, R);
+F = lqr(A, B2, Q, R);
+G = F;
 
 % Initialize lagrange multipliers to zero
 lambda = zeros(j, i);
@@ -56,6 +56,7 @@ lambda = zeros(j, i);
 tol_ADMM_abs = 1e-4; % absolute tolerance for ADMM
 tol_ADMM_rel = 1e-2; % relative tolerance for ADMM
 tol_AM = 1e-2; % tolerance for Anderson-Moore method
+tol_NT = 1e-3; % tolerance for Newton's method of conjugate gradient
 
 % Define number of Fmin iterations for each k
 n_AM = 100;
@@ -68,8 +69,10 @@ for k = 1: n
     
     % Perform G minimization
     V = F + lambda/rho;
-    a = (Gamma/rho) * W;
-    G_new = (V - a) .* ( V > a ) + (V + a) .* ( V < -a );
+    
+    % G_new is calculated assuming penalty is cardinality function
+    b = sqrt(2 * Gamma / rho);
+    G_new = V .* ( abs(V) > b );
     
     %%%%%%%%%%%%%%%%%%% Convergence check%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Calculate residuals to check for convergence
@@ -102,11 +105,10 @@ end
 
 % Number of non-zero elements in F
 N = nnz(F);
-    
-% Set W_new value for weighted L1 norm
-W_new = 1./(abs(F) + 1e-3); % adding 1e-3 avoides division by zero
 
-% Value of J
-J = trace(B1'*lyap((A - B2*F)', Q + F'*R*F) * B1);
-
+% Solve the structured H2 norm problem, (SH2)
+S = double( F ~= 0 );
+[F, J] = solve_SH2(A, B1, B2, Q, R, S, F, tol_NT);
+fprintf("\t Gamma \t\t\t H2_norm \t\t Number of non-zero elements in F\n");
+fprintf("\t %.4f \t\t %.2f \t\t %d \n", Gamma, J, N);
 end
