@@ -69,7 +69,7 @@ for i = 1:n
     % Use conjugate gradient to compute descent direction
     F_cj = descent_CG(A, B2, F, P, L, R, del_J, S);
     
-    while True
+    while true
         
         F_update = F + step*F_cj;
         

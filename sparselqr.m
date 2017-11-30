@@ -109,6 +109,5 @@ N = nnz(F);
 % Solve the structured H2 norm problem, (SH2)
 S = double( F ~= 0 );
 [F, J] = solve_SH2(A, B1, B2, Q, R, S, F, tol_NT);
-fprintf("\t Gamma \t\t\t H2_norm \t\t Number of non-zero elements in F\n");
 fprintf("\t %.4f \t\t %.2f \t\t %d \n", Gamma, J, N);
 end
