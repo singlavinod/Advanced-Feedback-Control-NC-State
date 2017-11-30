@@ -5,14 +5,17 @@ clear; clc; close all; % Housekeeping
 % State-space representation of the vehicular formation with N vehicles
 N = 10;
 A = zeros(2*N - 1);
+C = A;
 Q = A;
 B = zeros(2*N - 1, N);
 i = 1;
 j = 1;
 k = 1;
+l = 1;
 
 while (i <= 2*N - 1)
     A(i,j) = -1;
+    C(i,j) = 1;
     B(i,k) = 1;
     if i < 2*N - 1
         A(i+1,j) = 1;
@@ -20,8 +23,10 @@ while (i <= 2*N - 1)
         Q(i+1,j+1) = 10; % Can be increased to speed up response
     end
     i = i + 2;
+    
     j = j + 2;
     k = k + 1;
+    l = l + 1;
 end
 
 B1 = B; % Disturbance input matrix
@@ -70,7 +75,7 @@ legend('Cardinality','% of non-zero elements');
 
 % Objective function J(F) vs Gamma
 figure;
-[~, P] = lqr(A,B2,Q,R);
+[Ff, P] = lqr(A,B2,Q,R);
 Jc = trace(P*(B1*B1'));
 yyaxis left;
 plot(gamma,J,'-','LineWidth',2);
@@ -88,3 +93,15 @@ set(h, 'FontName', 'cmr10', 'FontSize', 18)
 ylab = ylabel('Percent of original objective');
 set(ylab, 'FontName', 'cmmi10', 'FontSize', 18)
 legend('J(F)','% of orig. J(F)');
+
+% Compare steady state performance
+X0 = zeros(2*N - 1, 1); X0(5) = 2.1;
+sys1 = ss((A - B2*Ff), B, C(1:N,:), 0); % For full-order feedback, Ff
+sys2 = ss((A - B2*Ff), B, C(N+1:end,:), 0); % For full-order feedback, Ff
+figure; initial(sys1, X0, 10);
+figure; initial(sys2, X0, 10);
+
+sys3 = ss((A - B2*F), B, C(1:N,:), 0); % For sparse feedback, F
+sys4 = ss((A - B2*F), B, C(N+1:end,:), 0); % For sparse feedback, F
+figure; initial(sys3, X0, 10);
+figure; initial(sys4, X0, 10);
